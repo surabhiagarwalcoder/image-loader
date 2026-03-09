@@ -1,0 +1,77 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main        # triggers prod deploy
+      - develop     # triggers dev deploy
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install API Lambda dependencies
+        run: |
+          pip install -r src/api-lambda/requirements.txt -t src/api-lambda/
+
+      - name: Install Metadata Lambda dependencies
+        run: |
+          pip install -r src/metadata-lambda/requirements.txt -t src/metadata-lambda/
+
+      - name: Run tests
+        run: |
+          pip install pytest
+          pytest src/api-lambda/tests/ src/metadata-lambda/tests/ -v
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Terraform Init
+        working-directory: infrastructure
+        run: |
+          terraform init \
+            -backend-config="bucket=image-platform-tfstate-${{ steps.env.outputs.environment }}" \
+            -backend-config="key=terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Terraform Plan
+        working-directory: infrastructure
+        run: |
+          terraform plan \
+            -var-file="environments/${{ steps.env.outputs.environment }}/terraform.tfvars" \
+            -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: infrastructure
+        run: terraform apply tfplan
