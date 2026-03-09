@@ -59,20 +59,22 @@ jobs:
       #   run: |
       #     pip install pytest
       #     pytest src/api-lambda/tests/ src/metadata-lambda/tests/ -v
-      #   continue-on-error: false
+      #   continue-on-error: true
 
-      # ─── Zip Lambdas ──────────────────────────────────────────────────────
+      # ─── Zip Lambdas into infrastructure/builds/ ──────────────────────────
       - name: Zip API Lambda
         run: |
+          mkdir -p infrastructure/builds
           cd src/api-lambda
-          zip -r ../../api-lambda.zip .
+          zip -r ../../infrastructure/builds/api-lambda.zip .
 
       - name: Zip Metadata Lambda
         run: |
+          mkdir -p infrastructure/builds
           cd src/metadata-lambda
-          zip -r ../../metadata-lambda.zip .
+          zip -r ../../infrastructure/builds/metadata-lambda.zip .
 
-      # ─── Terraform setup ──────────────────────────────────────────────────
+      # ─── Terraform ────────────────────────────────────────────────────────
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:

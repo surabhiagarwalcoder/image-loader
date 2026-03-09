@@ -2,9 +2,9 @@ locals {
   api_lambda_name      = "${var.project}-${var.environment}-api"
   metadata_lambda_name = "${var.project}-${var.environment}-metadata"
 
-  # Zips are built by CI/CD pipeline before terraform runs
-  api_lambda_zip      = "${path.root}/../../api-lambda.zip"
-  metadata_lambda_zip = "${path.root}/../../metadata-lambda.zip"
+  # Zips are built by CI/CD into infrastructure/builds/ before terraform runs
+  api_lambda_zip      = "${path.root}/builds/api-lambda.zip"
+  metadata_lambda_zip = "${path.root}/builds/metadata-lambda.zip"
 }
 
 # ─── API Lambda ───────────────────────────────────────────────────────────────
