@@ -1,22 +1,10 @@
 locals {
   api_lambda_name      = "${var.project}-${var.environment}-api"
   metadata_lambda_name = "${var.project}-${var.environment}-metadata"
-}
 
-# ─── Package Lambda source code ───────────────────────────────────────────────
-
-data "archive_file" "api_lambda" {
-  type        = "zip"
-  source_dir  = "${path.root}/../src/api-lambda"
-  output_path = "${path.module}/builds/api-lambda.zip"
-  excludes    = []
-}
-
-data "archive_file" "metadata_lambda" {
-  type        = "zip"
-  source_dir  = "${path.root}/../src/metadata-lambda"
-  output_path = "${path.module}/builds/metadata-lambda.zip"
-  excludes    = []
+  # Zips are built by CI/CD pipeline before terraform runs
+  api_lambda_zip      = "${path.root}/../../api-lambda.zip"
+  metadata_lambda_zip = "${path.root}/../../metadata-lambda.zip"
 }
 
 # ─── API Lambda ───────────────────────────────────────────────────────────────
@@ -26,8 +14,8 @@ resource "aws_lambda_function" "api" {
   role             = var.api_lambda_role_arn
   handler          = "handler.lambda_handler"
   runtime          = "python3.12"
-  filename         = data.archive_file.api_lambda.output_path
-  source_code_hash = data.archive_file.api_lambda.output_base64sha256
+  filename         = local.api_lambda_zip
+  source_code_hash = filebase64sha256(local.api_lambda_zip)
   timeout          = 30
   memory_size      = 256
 
@@ -52,10 +40,10 @@ resource "aws_lambda_function" "metadata" {
   role             = var.metadata_lambda_role_arn
   handler          = "handler.lambda_handler"
   runtime          = "python3.12"
-  filename         = data.archive_file.metadata_lambda.output_path
-  source_code_hash = data.archive_file.metadata_lambda.output_base64sha256
+  filename         = local.metadata_lambda_zip
+  source_code_hash = filebase64sha256(local.metadata_lambda_zip)
   timeout          = 60
-  memory_size      = 512  # Higher for image processing
+  memory_size      = 512
 
   environment {
     variables = {

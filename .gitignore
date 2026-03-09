@@ -1,0 +1,28 @@
+# Lambda dependency folders - installed fresh in CI/CD
+src/api-lambda/modules/
+src/metadata-lambda/modules/
+
+# Lambda zip files
+*.zip
+
+# Terraform
+infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstate.backup
+infrastructure/tfplan
+infrastructure/builds/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
