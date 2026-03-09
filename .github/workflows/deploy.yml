@@ -1,11 +1,11 @@
 name: Deploy
 
 on:
-  workflow_dispatch:  # enables manual trigger from GitHub UI
+  workflow_dispatch:
   push:
     branches:
-      - main       # triggers prod deploy
-      - develop    # triggers dev deploy
+      - main
+      - develop
 
 env:
   AWS_REGION: us-east-1
@@ -15,15 +15,12 @@ env:
 jobs:
   deploy:
     name: Deploy to ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
-    runs-on:
-  workflow_dispatch:  # enables manual trigger from GitHub UI ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
-      # ─── Checkout ────────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ─── Set environment name ─────────────────────────────────────────────
       - name: Set environment
         id: env
         run: |
@@ -33,57 +30,44 @@ jobs:
             echo "environment=dev" >> $GITHUB_OUTPUT
           fi
 
-      # ─── AWS credentials ──────────────────────────────────────────────────
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region:
-  workflow_dispatch:  # enables manual trigger from GitHub UI ${{ env.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # ─── Python setup ─────────────────────────────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version:
-  workflow_dispatch:  # enables manual trigger from GitHub UI ${{ env.PYTHON_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      # ─── Install dependencies into modules/ folders ───────────────────────
       - name: Install API Lambda dependencies
-        run: |
-          pip install -r src/api-lambda/requirements.txt -t src/api-lambda/modules/
+        run: pip install -r src/api-lambda/requirements.txt -t src/api-lambda/modules/
 
       - name: Install Metadata Lambda dependencies
-        run: |
-          pip install -r src/metadata-lambda/requirements.txt -t src/metadata-lambda/modules/
+        run: pip install -r src/metadata-lambda/requirements.txt -t src/metadata-lambda/modules/
 
-      # ─── Run tests ────────────────────────────────────────────────────────
       # - name: Run tests
       #   run: |
       #     pip install pytest
       #     pytest src/api-lambda/tests/ src/metadata-lambda/tests/ -v
       #   continue-on-error: true
 
-      # ─── Zip Lambdas into infrastructure/builds/ ──────────────────────────
       - name: Zip API Lambda
         run: |
           mkdir -p infrastructure/builds
-          cd src/api-lambda
-          zip -r ../../infrastructure/builds/api-lambda.zip .
+          cd src/api-lambda && zip -r ../../infrastructure/builds/api-lambda.zip .
 
       - name: Zip Metadata Lambda
         run: |
           mkdir -p infrastructure/builds
-          cd src/metadata-lambda
-          zip -r ../../infrastructure/builds/metadata-lambda.zip .
+          cd src/metadata-lambda && zip -r ../../infrastructure/builds/metadata-lambda.zip .
 
-      # ─── Terraform ────────────────────────────────────────────────────────
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version:
-  workflow_dispatch:  # enables manual trigger from GitHub UI ${{ env.TERRAFORM_VERSION }}
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
 
       - name: Terraform Init
         working-directory: infrastructure
