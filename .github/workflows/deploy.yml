@@ -1,6 +1,7 @@
 name: Deploy
 
 on:
+  workflow_dispatch:  # enables manual trigger from GitHub UI
   push:
     branches:
       - main       # triggers prod deploy
@@ -14,7 +15,8 @@ env:
 jobs:
   deploy:
     name: Deploy to ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
-    runs-on: ubuntu-latest
+    runs-on:
+  workflow_dispatch:  # enables manual trigger from GitHub UI ubuntu-latest
 
     steps:
       # ─── Checkout ────────────────────────────────────────────────────────────
@@ -37,13 +39,15 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region:
+  workflow_dispatch:  # enables manual trigger from GitHub UI ${{ env.AWS_REGION }}
 
       # ─── Python setup ─────────────────────────────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version:
+  workflow_dispatch:  # enables manual trigger from GitHub UI ${{ env.PYTHON_VERSION }}
 
       # ─── Install dependencies into modules/ folders ───────────────────────
       - name: Install API Lambda dependencies
@@ -78,7 +82,8 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_version:
+  workflow_dispatch:  # enables manual trigger from GitHub UI ${{ env.TERRAFORM_VERSION }}
 
       - name: Terraform Init
         working-directory: infrastructure
