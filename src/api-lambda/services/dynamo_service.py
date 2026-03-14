@@ -18,7 +18,7 @@ def _sk(upload_time, image_id):
     return f"IMAGE#{upload_time}#{image_id}"
 
 
-def create_image_record(user_id, image_id, s3_key, upload_time, content_type, size=None):
+def create_image_record(user_id, image_id, s3_key, upload_time, content_type, status, size=None):
     item = {
         "PK": _pk(user_id),
         "SK": _sk(upload_time, image_id),
@@ -27,7 +27,7 @@ def create_image_record(user_id, image_id, s3_key, upload_time, content_type, si
         "s3_key": s3_key,
         "upload_time": upload_time,
         "content_type": content_type,
-        "status": "UPLOADING",
+        "status": status,
         "is_deleted": False,
         "metadata_json": None,
     }

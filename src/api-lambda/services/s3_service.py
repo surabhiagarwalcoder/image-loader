@@ -6,7 +6,7 @@ BUCKET_NAME = os.environ["S3_BUCKET"]
 PRESIGNED_URL_EXPIRY = 900  # 15 minutes
 
 
-def generate_presigned_upload_url(s3_key, content_type):
+def generate_presigned_upload_url(s3_key, content_type, expiry: int = 300):
     url = s3_client.generate_presigned_url(
         "put_object",
         Params={
@@ -14,7 +14,7 @@ def generate_presigned_upload_url(s3_key, content_type):
             "Key": s3_key,
             "ContentType": content_type,
         },
-        ExpiresIn=PRESIGNED_URL_EXPIRY,
+        ExpiresIn=expiry,
     )
     return url
 

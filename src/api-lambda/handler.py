@@ -5,7 +5,7 @@ import os
 # Add modules/ folder to path so pip-installed dependencies are found
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "modules"))
 
-from routes.upload import handle_upload_url
+from routes.upload import handle_upload_image
 from routes.list import handle_list_images
 from routes.get import handle_get_image
 from routes.delete import handle_delete_image
@@ -13,7 +13,7 @@ from utils.auth import extract_user_id
 from utils.response import error_response
 
 ROUTES = {
-    ("POST", "/images/upload-url"): handle_upload_url,
+    ("POST", "/images/upload-url"): handle_upload_image,
     ("GET", "/images"):             handle_list_images,
     ("GET", "/images/{image_id}"):  handle_get_image,
     ("DELETE", "/images/{image_id}"): handle_delete_image,
